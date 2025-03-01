@@ -16,7 +16,7 @@ const salas = {}; // Armazena os jogadores em cada sala
 io.on("connection", (socket) => {
   console.log(`Novo jogador conectado: ${socket.id}`);
 
-  socket.on("EntrarSalas", (data) => {
+  socket.on("entrarSalas", (data) => {
     console.log(`Jogador ${socket.id} entrou na sala ${data.sala}`);
     socket.join(data.sala); // Adiciona o jogador à sala
     
