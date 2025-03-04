@@ -27,9 +27,6 @@ const io = new Server(server, {
   }
 });
 
-// Armazena os jogadores em cada sala
-const salas = {};
-
 io.on("connection", (socket) => {
   console.log(`Novo jogador conectado: ${socket.id}`);
 
@@ -49,10 +46,12 @@ io.on("connection", (socket) => {
   });
 
   // Jogador sai da sala ao desconectar
-  socket.on("disconnect", () => {
+  socket.on("disconnect", async () => {
+    const salas = await redisClient.keys("sala:*");  // Busca todas as salas no Redis
     for (const sala in salas) {
-      salas[sala] = salas[sala].filter((jogador) => jogador !== socket.id); // Remove jogador da sala
-      io.to(sala).emit("atualizarJogadores", salas[sala]); // Atualiza a lista de jogadores na sala
+      await redisClient.sRem(sala, socket.id); // Remove jogador do conjunto da sala no Redis
+      const jogadores = await redisClient.sMembers(sala); // Busca os jogadores da sala no Redis
+      io.to(sala.replace("sala:", "")).emit("atualizarJogadores", jogadores); // Atualiza a lista de jogadores na sala
     }
     console.log(`Jogador ${socket.id} desconectado`);
   });
