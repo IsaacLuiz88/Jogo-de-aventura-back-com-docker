@@ -15,7 +15,7 @@ app.use(cors());
 connectToDatabase();
 
 // Configuração do Redis
-const redisClient = createClient({ url: 'redis://localhost:6379' });  // Conexão com o Redis local
+const redisClient = createClient({ url: process.env.REDIS_URL || 'redis://localhost:6379' });  // Conexão com o Redis local
 redisClient.on('error', console.error);  // Tratar erro de conexão
 redisClient.connect().then(() => console.log('Conectado ao Redis')).catch(console.error);  // Conectar e tratar erro
 
