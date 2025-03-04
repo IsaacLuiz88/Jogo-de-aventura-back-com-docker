@@ -16,6 +16,7 @@ connectToDatabase();
 
 // Configuração do Redis
 const redisClient = createClient({ url: 'redis://localhost:6379' });  // Conexão com o Redis local
+redisClient.on('error', console.error);  // Tratar erro de conexão
 redisClient.connect().then(() => console.log('Conectado ao Redis')).catch(console.error);  // Conectar e tratar erro
 
 // Criação do servidor HTTP e Socket.IO
@@ -36,7 +37,7 @@ io.on("connection", (socket) => {
     await redisClient.sAdd(`sala:${data.sala}`, socket.id);  // Adiciona o jogador ao conjunto da sala no Redis
     const jogadores = await redisClient.sMembers(`sala:${data.sala}`);  // Busca os jogadores da sala no Redis
     socket.join(data.sala); // Adiciona o jogador à sala
-    io.to(data.sala).emit("atualizarJogadores", salas[data.sala]); // Atualiza a lista de jogadores da sala
+    io.to(data.sala).emit("atualizarJogadores", jogadores); // Atualiza a lista de jogadores da sala
   });
 
   // Evento de mensagem entre jogadores
@@ -48,7 +49,7 @@ io.on("connection", (socket) => {
   // Evento de desconexão (agora usando Redis para gerenciar as salas)
   socket.on("disconnect", async () => {
     const salas = await redisClient.keys("sala:*");  // Busca todas as salas no Redis
-    for (const sala in salas) {
+    for (const sala of salas) {
       await redisClient.sRem(sala, socket.id); // Remove jogador do conjunto da sala no Redis
       const jogadores = await redisClient.sMembers(sala); // Busca os jogadores da sala no Redis
       io.to(sala.replace("sala:", "")).emit("atualizarJogadores", jogadores); // Atualiza a lista de jogadores na sala
