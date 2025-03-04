@@ -6,7 +6,7 @@ export function connectToDatabase() {
     const uri = process.env.MONGO_URL;
     
     if(!uri) {  // Se a URI não foi definida, exibe um erro
-        console.error('URI de conexão com o MongoDB não definida');
+        console.error('❌ URI de conexão com o MongoDB não definida');
         process.exit(1);
     }
     
