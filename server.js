@@ -83,9 +83,18 @@ app.post('/', (req, res) => {
     const score = req.body;
     console.log('Score recebido:', score);
 
-    Score.insertOne(score)
-    .then(() => res.send('Score salvo'))
-    .catch((e) => res.send('Erro ao salvar score'));
+    const newScore = new Score({
+      score: score.score,
+      total_bricks: score.total_bricks,
+      bombs_skipped: score.bombs_skipped,
+      bombs_exploded: score.bombs_exploded,
+      energy_captured: score.energy_captured,
+      nickname: score.nickname
+  });
+
+  newScore.save()
+  .then(() => res.send('Score salvo'))
+  .catch((e) => res.send('Erro ao salvar score'));
 });
 
 app.get('/all', (req, res) => {
