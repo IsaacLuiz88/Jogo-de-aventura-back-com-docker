@@ -55,7 +55,7 @@ io.on("connection", (socket) => {
     }
     console.log(`Jogador ${socket.id} desconectado`);
   });
-  
+
   // Evento para salvar score
   socket.on("salvarScore", async (scoreData) => {
     const score = new Score({
@@ -71,45 +71,38 @@ io.on("connection", (socket) => {
   });
 });
 
-    Score.insertOne(score)
-      .then(() => {
-        console.log('Score salvo:', score);
-        io.emit("scoreSalvo", score); // Emite evento confirmando o salvamento
-      })
-      .catch((e) => console.error("Erro ao salvar score:", e));
-
 // Rotas do Express para interagir com o banco de dados / salvar score via HTTP (express)
 app.post('/', (req, res) => {
-    const score = req.body;
-    console.log('Score recebido:', score);
+  const score = req.body;
+  console.log('Score recebido:', score);
 
-    const newScore = new Score({
-      score: score.score,
-      total_bricks: score.total_bricks,
-      bombs_skipped: score.bombs_skipped,
-      bombs_exploded: score.bombs_exploded,
-      energy_captured: score.energy_captured,
-      nickname: score.nickname
+  const newScore = new Score({
+    score: score.score,
+    total_bricks: score.total_bricks,
+    bombs_skipped: score.bombs_skipped,
+    bombs_exploded: score.bombs_exploded,
+    energy_captured: score.energy_captured,
+    nickname: score.nickname
   });
 
   newScore.save()
-  .then(() => res.send('Score salvo'))
-  .catch((e) => res.send('Erro ao salvar score'));
+    .then(() => res.send('Score salvo'))
+    .catch((e) => res.send('Erro ao salvar score'));
 });
 
 app.get('/all', (req, res) => {
-    Score.find()
+  Score.find()
     .then((scores) => res.send(scores))
     .catch((e) => res.send('Erro ao buscar scores'));
 });
 
 app.get('/max', (req, res) => {
-    Score.find().sort({score: -1}).limit(1)
+  Score.find().sort({ score: -1 }).limit(1)
     .then((scores) => res.send(scores))
     .catch((e) => res.send('Erro ao buscar scores'));
 });
 
 // Inicia o servidor Express na porta 3001
 server.listen(3001, () => {
-    console.log('Servidor WebSocket e Express rodando na porta 3001');
+  console.log('Servidor WebSocket e Express rodando na porta 3001');
 });
