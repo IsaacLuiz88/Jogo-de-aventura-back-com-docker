@@ -45,7 +45,7 @@ io.on("connection", (socket) => {
     io.emit("mensagem", data); // Envia a mensagem para todos os jogadores
   });
 
-  // Jogador sai da sala ao desconectar
+  // Evento de desconexão (agora usando Redis para gerenciar as salas)
   socket.on("disconnect", async () => {
     const salas = await redisClient.keys("sala:*");  // Busca todas as salas no Redis
     for (const sala in salas) {
@@ -57,12 +57,19 @@ io.on("connection", (socket) => {
   });
   
   // Evento para salvar score
-  socket.on("salvarScore", (scoreData) => {
-    const score = {
-      playerId: socket.id,
+  socket.on("salvarScore", async (scoreData) => {
+    const score = new Score({
       score: scoreData.score,
-      room: scoreData.room,
-    };
+      total_bricks: scoreData.total_bricks,
+      bombs_skipped: scoreData.bombs_skipped,
+      bombs_exploded: scoreData.bombs_exploded,
+      energy_captured: scoreData.energy_captured,
+      nickname: scoreData.nickname
+    });
+    await score.save();  // Salva o score no MongoDB
+    io.emit("scoreSalvo", score);  // Emite evento confirmando o salvamento do score
+  });
+});
 
     Score.insertOne(score)
       .then(() => {
@@ -70,10 +77,8 @@ io.on("connection", (socket) => {
         io.emit("scoreSalvo", score); // Emite evento confirmando o salvamento
       })
       .catch((e) => console.error("Erro ao salvar score:", e));
-  });
-});
 
-// Rotas do Express para interagir com o banco de dados
+// Rotas do Express para interagir com o banco de dados / salvar score via HTTP (express)
 app.post('/', (req, res) => {
     const score = req.body;
     console.log('Score recebido:', score);
