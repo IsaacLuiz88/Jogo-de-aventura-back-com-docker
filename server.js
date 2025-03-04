@@ -2,22 +2,24 @@ import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
-import { createClient } from 'redis';  // Importação do Redis
-import { connectToDatabase } from './database.js'; // Função que conecta ao MongoDB
+import dotenv from 'dotenv';
+import { connectToDatabase } from './database.js';  // Conexão com MongoDB
+import { client as redisClient, connectRedis } from './redisClient.js'; // Conexão única do Redis
 import { Score } from './model.js'; // Modelo Score para interagir com o MongoDB
+
+dotenv.config(); // Carregar variáveis do .env
 
 // Criação do servidor Express
 const app = express();
 app.use(express.json());
 app.use(cors());
+const PORT = process.env.PORT || 3001;
 
 // Conecta ao banco de dados MongoDB
 connectToDatabase();
 
 // Configuração do Redis
-const redisClient = createClient({ url: process.env.REDIS_URL || 'redis://localhost:6379' });  // Conexão com o Redis local
-redisClient.on('error', console.error);  // Tratar erro de conexão
-redisClient.connect().then(() => console.log('Conectado ao Redis')).catch(console.error);  // Conectar e tratar erro
+connectRedis();
 
 // Criação do servidor HTTP e Socket.IO
 const server = http.createServer(app);
@@ -104,6 +106,6 @@ app.get('/max', (req, res) => {
 });
 
 // Inicia o servidor Express na porta 3001
-server.listen(3001, () => {
-  console.log('Servidor WebSocket e Express rodando na porta 3001');
+server.listen(PORT, () => {
+  console.log(`Servidor WebSocket e Express rodando na porta ${PORT}`);
 });
